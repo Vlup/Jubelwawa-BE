@@ -26,5 +26,5 @@ Route::get('/cities', [CityController::class, 'index']);
 Route::get('/subdistricts', [SubDistrictController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/logout', [AuthController::class, 'logout']); 
 });
