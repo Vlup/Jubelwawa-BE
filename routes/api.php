@@ -3,9 +3,11 @@
 use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CityController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\SubDistrictController;
 use Illuminate\Support\Facades\Route;
+use Symfony\Component\HttpKernel\Profiler\Profile;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,4 +29,8 @@ Route::get('/subdistricts', [SubDistrictController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']); 
+
+    Route::get('/profile', [ProfileController::class, 'index']);
+    Route::put('/profile', [ProfileController::class, 'update']);
+    Route::put('/profile/change-password', [ProfileController::class, 'changePassword']);
 });
