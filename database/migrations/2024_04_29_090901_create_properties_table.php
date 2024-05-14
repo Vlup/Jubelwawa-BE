@@ -15,18 +15,18 @@ return new class extends Migration
             $table->increments('id');
             $table->unsignedInteger('user_id');
             $table->unsignedInteger('category_id');
+            $table->unsignedInteger('sub_category_id');
             $table->unsignedInteger('province_id');
             $table->unsignedInteger('city_id');
             $table->unsignedInteger('sub_district_id');
             $table->string('title');
-            $table->string('location');
             $table->text('description');
-            $table->text('image');
+            $table->text('image')->nullable();
             $table->integer('price', false, true);
             $table->integer('land_size', false, true);
             $table->integer('building_size', false, true);
             $table->string('offer_type');
-            $table->boolean('is_sold');
+            $table->boolean('is_sold')->default(false);
             $table->timestampsTz(6);
         });
 

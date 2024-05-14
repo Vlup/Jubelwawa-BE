@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\SubDistrictController;
 use Illuminate\Support\Facades\Route;
@@ -23,9 +24,10 @@ use Symfony\Component\HttpKernel\Profiler\Profile;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::get('/provinces', [ProvinceController::class, 'index']);
-Route::get('/cities', [CityController::class, 'index']);
-Route::get('/subdistricts', [SubDistrictController::class, 'index']);
+Route::get('/select-option', [PropertyController::class, 'selectOption']);
+Route::get('/cities', [PropertyController::class, 'getCityByProvince']);
+Route::get('/sub-districts', [PropertyController::class, 'getSubDistrictByCity']);
+Route::get('/sub-type', [PropertyController::class, 'getSubCategoryByCategory']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']); 
