@@ -2,28 +2,90 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\PropertyDetailResource;
 use App\Http\Resources\PropertyResource;
 use App\Models\Property;
 use App\Models\Province;
 use App\Models\City;
 use App\Models\Category;
+use App\Models\Like;
 use App\Models\SubCategory;
 use App\Models\SubDistrict;
+use App\Models\View;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class PropertyController extends Controller
 {
-    public function index(Request $request): PropertyResource
+    public function index(Request $request): AnonymousResourceCollection
     {
-        $status = $request->input('status');
-        $properties = Property::with('category', 'subCategory', 'province', 'city', 'subDistrict')
-            ->when($status, function ($q) use ($status) {
-                $q->where('offer_type', $status);
+        $input = validator($request->all(), [
+            'province' => 'nullable|exists:provinces,id',
+            'city' => 'nullable|exists:cities,id',
+            'sub_district' => 'nullable|exists:sub_districts,id',
+            'allotment' => 'nullable|in:Sell,Lease,Buy,Rent',
+            'min_price' => 'nullable|numeric|min:1',
+            'max_price' => 'nullable|numeric|min:1',
+            'type' => 'nullable|exists:categories,id',
+            'subtype' => 'nullable|exists:sub_categories,id'
+        ])->validate();
+
+        $properties = Property::with([
+            'category', 
+            'subCategory',
+            'province', 
+            'city', 
+            'subDistrict', 
+            'likes' => function ($q) {
+                $q->where('user_id', auth()->user()?->id ?? null);
+            },
+            'views' => function ($q) {
+                $q->where('user_id', auth()->user()?->id ?? null);
+            }])
+            ->when(isset($input['province']), function ($q) use ($input) {
+                $q->where('province_id', $input['province']);
             })
+            ->when(isset($input['city']), function ($q) use ($input) {
+                $q->where('city_id', $input['city']);
+            })
+            ->when(isset($input['sub_district']), function ($q) use ($input) {
+                $q->where('sub_district_id', $input['sub_district']);
+            })
+            ->when(isset($input['allotment']), function ($q) use ($input) {
+                $q->where('offer_type', $input['allotment']);
+            })
+            ->when(isset($input['min_price']), function ($q) use ($input) {
+                $q->where('price', '>=', $input['min_price']);
+            })
+            ->when(isset($input['max_price']), function ($q) use ($input) {
+                $q->where('price', '<=', $input['max_price']);
+            })
+            ->when(isset($input['type']), function ($q) use ($input) {
+                $q->where('category_id', $input['type']);
+            })
+            ->when(isset($input['subtype']), function ($q) use ($input) {
+                $q->where('sub_category_id', $input['subtype']);
+            })
+            ->withCount('views')
             ->latest()
             ->get();
 
-        return new PropertyResource($properties);
+        return PropertyResource::collection($properties);
+    }
+
+    public function show($id)
+    {
+        $property = Property::with([
+            'likes' => function ($q) {
+                $q->where('user_id', auth()->user()?->id ?? null);
+            },
+            'views' => function ($q) {
+                $q->where('user_id', auth()->user()?->id ?? null);
+            }])
+            ->withCount('views')
+            ->findOrFail($id);
+        
+        return new PropertyDetailResource($property);
     }
 
     public function store(Request $request)
@@ -35,17 +97,18 @@ class PropertyController extends Controller
             'name' => 'required|string',
             'price' => 'required|numeric|min:1',
             'image' => 'required|string',
-            'description' => 'required|text',
+            'description' => 'required|string',
             'bedroom' => 'required|numeric|min:1',
             'bathroom' => 'required|numeric|min:1',
             'land_size' => 'required|numeric|min:1',
             'building_size' => 'required|numeric|min:1',
             'type' => 'required|exists:categories,id',
-            'sub_type' => 'required|exists:sub_categories,id',
-            'status' => 'required|in:SELL,LEASE,BUY,RENT' 
+            'subtype' => 'required|exists:sub_categories,id',
+            'status' => 'required|in:Sell,Lease,Buy,Rent' 
         ])->validate();
 
         $property = new Property();
+        $property->user_id = auth()->user()->id;
         $property->province_id = $input['province'];
         $property->city_id = $input['city'];
         $property->sub_district_id = $input['sub_district'];
@@ -158,6 +221,53 @@ class PropertyController extends Controller
 
         return response()->json([
             'data' => $subType
+        ]);
+    }
+
+    public function likeProperty($propertyId)
+    {
+        $userId = auth()->user()->id;
+        $like = Like::where('user_id', $userId)
+                    ->where('property_id', $propertyId)
+                    ->first();
+
+        if ($like) {
+            $like->delete();
+            return response()->json([
+                'status' => true,
+                'message' => 'Property unliked successfully.',
+            ]);
+        } else {
+            Like::create([
+                'user_id' => $userId,
+                'property_id' => $propertyId,
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Property liked successfully.',
+            ]);
+        }
+    }
+
+    public function addView($propertyId)
+    {
+        $userId = auth()->user()->id;
+
+        $view = View::where('user_id', $userId)
+                    ->where('property_id', $propertyId)
+                    ->first();
+
+        if (!$view) {
+            View::create([
+                'user_id' => $userId,
+                'property_id' => $propertyId,
+            ]);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'View added successfully.',
         ]);
     }
 }

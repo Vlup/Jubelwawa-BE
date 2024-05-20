@@ -35,4 +35,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [ProfileController::class, 'index']);
     Route::put('/profile', [ProfileController::class, 'update']);
     Route::put('/profile/change-password', [ProfileController::class, 'changePassword']);
+
+    Route::prefix('properties')->group(function () {
+        Route::get('/', [PropertyController::class, 'index']);
+        Route::get('{id}', [PropertyController::class, 'show']);
+        Route::post('/', [PropertyController::class, 'store']);
+        Route::put('{id}/like', [PropertyController::class, 'likeProperty']);
+        Route::put('{id}/view', [PropertyController::class, 'addView']);
+    });
 });

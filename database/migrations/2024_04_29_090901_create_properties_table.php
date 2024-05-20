@@ -26,6 +26,8 @@ return new class extends Migration
             $table->integer('land_size', false, true);
             $table->integer('building_size', false, true);
             $table->string('offer_type');
+            $table->integer('bedroom', false, true);
+            $table->integer('bathroom', false, true);
             $table->boolean('is_sold')->default(false);
             $table->timestampsTz(6);
         });
