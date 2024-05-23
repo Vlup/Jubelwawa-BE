@@ -40,6 +40,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [PropertyController::class, 'index']);
         Route::get('{id}', [PropertyController::class, 'show']);
         Route::post('/', [PropertyController::class, 'store']);
+        Route::put('{id}', [PropertyController::class, 'update']);
+        Route::post('{id}/review', [PropertyController::class, 'review']);
         Route::put('{id}/like', [PropertyController::class, 'likeProperty']);
         Route::put('{id}/view', [PropertyController::class, 'addView']);
     });

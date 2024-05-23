@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('description');
             $table->text('image')->nullable();
-            $table->integer('price', false, true);
+            $table->unsignedBigInteger('price', false);
             $table->integer('land_size', false, true);
             $table->integer('building_size', false, true);
             $table->string('offer_type');

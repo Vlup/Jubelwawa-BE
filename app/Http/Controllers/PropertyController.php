@@ -9,6 +9,7 @@ use App\Models\Province;
 use App\Models\City;
 use App\Models\Category;
 use App\Models\Like;
+use App\Models\Review;
 use App\Models\SubCategory;
 use App\Models\SubDistrict;
 use App\Models\View;
@@ -76,6 +77,7 @@ class PropertyController extends Controller
     public function show($id)
     {
         $property = Property::with([
+            'reviews.user',
             'likes' => function ($q) {
                 $q->where('user_id', auth()->user()?->id ?? null);
             },
@@ -128,6 +130,49 @@ class PropertyController extends Controller
         return response()->json([
             "status" => true,
             'message' => 'Property created successfully!',
+        ]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $input = validator($request->all(), [
+            'province' => 'required|exists:provinces,id',
+            'city' => 'required|exists:cities,id',
+            'sub_district' => 'required|exists:sub_districts,id',
+            'name' => 'required|string',
+            'price' => 'required|numeric|min:1',
+            'image' => 'required|string',
+            'description' => 'required|string',
+            'bedroom' => 'required|numeric|min:1',
+            'bathroom' => 'required|numeric|min:1',
+            'land_size' => 'required|numeric|min:1',
+            'building_size' => 'required|numeric|min:1',
+            'type' => 'required|exists:categories,id',
+            'subtype' => 'required|exists:sub_categories,id',
+            'status' => 'required|in:Sell,Lease,Buy,Rent' 
+        ])->validate();
+
+        $property = Property::findOrFail($id);
+        $property->user_id = auth()->user()->id;
+        $property->province_id = $input['province'];
+        $property->city_id = $input['city'];
+        $property->sub_district_id = $input['sub_district'];
+        $property->title = $input['name'];
+        $property->description = $input['description'];
+        $property->image = $input['image'];
+        $property->price = $input['price'];
+        $property->bedroom = $input['bedroom'];
+        $property->bathroom = $input['bathroom'];
+        $property->land_size = $input['land_size'];
+        $property->building_size = $input['building_size'];
+        $property->category_id = $input['type'];
+        $property->sub_category_id = $input['subtype'];
+        $property->offer_type = $input['status'];
+        $property->save();
+
+        return response()->json([
+            "status" => true,
+            'message' => 'Property updated successfully!',
         ]);
     }
 
@@ -268,6 +313,28 @@ class PropertyController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'View added successfully.',
+        ]);
+    }
+
+    public function review(Request $request, $id)
+    {
+        $property = Property::findOrFail($id);
+
+        $input = validator($request->all(), [
+            'rate' => 'required|numeric|min:1|max:5',
+            'content' => 'required|string|max:200'
+        ])->validate();
+        
+        $review = new Review();
+        $review->user_id = auth()->user()->id;
+        $review->property_id = $property->id;
+        $review->rate = $input['rate'];
+        $review->content = $input['content'];
+        $review->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Review property successfully.',
         ]);
     }
 }

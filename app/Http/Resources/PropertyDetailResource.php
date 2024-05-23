@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Review;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -34,6 +35,7 @@ class PropertyDetailResource extends JsonResource
             'bathroom' => $this->bathroom,
             'is_like' => $this->likes->count() > 0 ?? false,
             'total_view' => $this->views_count,
+            'reviews' => ReviewResource::collection($this->reviews)
         ];
     }
 
