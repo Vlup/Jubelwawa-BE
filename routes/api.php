@@ -28,6 +28,7 @@ Route::get('/select-option', [PropertyController::class, 'selectOption']);
 Route::get('/cities', [PropertyController::class, 'getCityByProvince']);
 Route::get('/sub-districts', [PropertyController::class, 'getSubDistrictByCity']);
 Route::get('/sub-type', [PropertyController::class, 'getSubCategoryByCategory']);
+Route::get('/properties', [PropertyController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']); 
@@ -37,7 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/profile/change-password', [ProfileController::class, 'changePassword']);
 
     Route::prefix('properties')->group(function () {
-        Route::get('/', [PropertyController::class, 'index']);
+        Route::get('/my-listing', [PropertyController::class, 'myListing']);
         Route::get('{id}', [PropertyController::class, 'show']);
         Route::post('/', [PropertyController::class, 'store']);
         Route::put('{id}', [PropertyController::class, 'update']);

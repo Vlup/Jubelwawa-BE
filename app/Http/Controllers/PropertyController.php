@@ -39,9 +39,6 @@ class PropertyController extends Controller
             'subDistrict', 
             'likes' => function ($q) {
                 $q->where('user_id', auth()->user()?->id ?? null);
-            },
-            'views' => function ($q) {
-                $q->where('user_id', auth()->user()?->id ?? null);
             }])
             ->when(isset($input['province']), function ($q) use ($input) {
                 $q->where('province_id', $input['province']);
@@ -336,5 +333,73 @@ class PropertyController extends Controller
             'status' => true,
             'message' => 'Review property successfully.',
         ]);
+    }
+        
+    public function myListing(Request $request)
+    {
+        $input = validator($request->all(), [
+            'province' => 'nullable|exists:provinces,id',
+            'city' => 'nullable|exists:cities,id',
+            'sub_district' => 'nullable|exists:sub_districts,id',
+            'allotment' => 'nullable|in:Sell,Lease,Buy,Rent',
+            'min_price' => 'nullable|numeric|min:1',
+            'max_price' => 'nullable|numeric|min:1',
+            'type' => 'nullable|exists:categories,id',
+            'subtype' => 'nullable|exists:sub_categories,id'
+        ])->validate();
+        
+        $properties = Property::with([
+            'category', 
+            'subCategory',
+            'province', 
+            'city', 
+            'subDistrict', 
+            'views' => function ($q) {
+                $q->where('user_id', auth()->user()?->id ?? null);
+            }])
+            ->where('user_id', auth()->user()->id)
+            ->when(isset($input['province']), function ($q) use ($input) {
+                $q->where('province_id', $input['province']);
+            })
+            ->when(isset($input['city']), function ($q) use ($input) {
+                $q->where('city_id', $input['city']);
+            })
+            ->when(isset($input['sub_district']), function ($q) use ($input) {
+                $q->where('sub_district_id', $input['sub_district']);
+            })
+            ->when(isset($input['allotment']), function ($q) use ($input) {
+                $q->where('offer_type', $input['allotment']);
+            })
+            ->when(isset($input['min_price']), function ($q) use ($input) {
+                $q->where('price', '>=', $input['min_price']);
+            })
+            ->when(isset($input['max_price']), function ($q) use ($input) {
+                $q->where('price', '<=', $input['max_price']);
+            })
+            ->when(isset($input['type']), function ($q) use ($input) {
+                $q->where('category_id', $input['type']);
+            })
+            ->when(isset($input['subtype']), function ($q) use ($input) {
+                $q->where('sub_category_id', $input['subtype']);
+            })
+            ->withCount('views')
+            ->latest()
+            ->get();
+
+        $query = Property::where('user_id', auth()->user()->id);
+        $totalProperties = $query->count();
+        $totalSoldProperties = $query->where('is_sold', true)
+            ->where('offer_type', Property::SELL)
+            ->count();
+        $totalRentedProperties = $query->where('is_sold', true)
+            ->where('offer_type', Property::RENT)
+            ->count();
+
+        return PropertyResource::collection($properties)
+            ->additional([
+                'total_properties' => $totalProperties,
+                'total_sold_properties' => $totalSoldProperties,
+                'total_rented_properties' => $totalRentedProperties
+            ]);
     }
 }
