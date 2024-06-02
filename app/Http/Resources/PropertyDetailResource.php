@@ -35,7 +35,8 @@ class PropertyDetailResource extends JsonResource
             'bathroom' => $this->bathroom,
             'is_like' => $this->likes->count() > 0 ?? false,
             'total_view' => $this->views_count,
-            'reviews' => ReviewResource::collection($this->reviews)
+            'reviews' => ReviewResource::collection($this->reviews),
+            'chat_id' => $this->chat_id,
         ];
     }
 

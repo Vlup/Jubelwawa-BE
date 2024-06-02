@@ -13,15 +13,15 @@ return new class extends Migration
     {
         Schema::create('messages', function (Blueprint $table) {
             $table->increments('id');
-            $table->unsignedInteger('sender_id');
-            $table->unsignedInteger('receiver_id');
+            $table->unsignedInteger('chat_id');
+            $table->unsignedInteger('user_id');
             $table->text('text');
             $table->timestampsTz(6);
         });
 
         Schema::table('messages', function (Blueprint $table) {
-            $table->foreign('sender_id')->references('id')->on('users');
-            $table->foreign('receiver_id')->references('id')->on('users');
+            $table->foreign('chat_id')->references('id')->on('chats');
+            $table->foreign('user_id')->references('id')->on('users');
         });
     }
 

@@ -2,7 +2,9 @@
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\CityController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\ProvinceController;
@@ -45,5 +47,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('{id}/review', [PropertyController::class, 'review']);
         Route::put('{id}/like', [PropertyController::class, 'likeProperty']);
         Route::put('{id}/view', [PropertyController::class, 'addView']);
+    });
+
+    Route::prefix('chats')->group(function () {
+        Route::get('/', [ChatController::class, 'index']);
+        Route::get('{id}', [ChatController::class, 'chatMessages']);
+    });
+
+    Route::post('/send-message', [ChatController::class, 'sendMessage']);
+
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index']);
     });
 });

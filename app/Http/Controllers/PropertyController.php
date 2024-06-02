@@ -8,11 +8,14 @@ use App\Models\Property;
 use App\Models\Province;
 use App\Models\City;
 use App\Models\Category;
+use App\Models\Chat;
 use App\Models\Like;
 use App\Models\Review;
 use App\Models\SubCategory;
 use App\Models\SubDistrict;
+use App\Models\User;
 use App\Models\View;
+use App\Notifications\NewPropertyPublished;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
@@ -83,7 +86,21 @@ class PropertyController extends Controller
             }])
             ->withCount('views')
             ->findOrFail($id);
-        
+
+        $chat = Chat::where('property_id', $property->id)
+            ->where('sender_id', auth()->user()->id)
+            ->first();
+
+        if (!$chat && auth()->user()->id !== $property->user_id) {
+            $chat = new Chat();
+            $chat->property_id = $property->id;
+            $chat->sender_id = auth()->user()->id;
+            $chat->receiver_id = $property->user_id;
+            $chat->save();
+        }
+
+        $property->chat_id = $chat->id;
+
         return new PropertyDetailResource($property);
     }
 
@@ -123,6 +140,13 @@ class PropertyController extends Controller
         $property->sub_category_id = $input['subtype'];
         $property->offer_type = $input['status'];
         $property->save();
+
+        $allUser = User::whereNot('id', auth()->user()->id)
+            ->get();
+        
+        foreach ($allUser as $user) {
+            $user->notify(new NewPropertyPublished($property));
+        }
 
         return response()->json([
             "status" => true,
