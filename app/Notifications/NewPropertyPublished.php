@@ -55,9 +55,9 @@ class NewPropertyPublished extends Notification
             'city' => $this->property->city->name,
             'sub_district' => $this->property->subDistrict->name,
             'offer_type' => $this->property->offer_type,
-            'price' => $this->price,
-            'type' => $this->category->name,
-            'subtype' => $this->subCategory->name,
+            'price' => $this->property->price,
+            'type' => $this->property->category->name,
+            'subtype' => $this->property->subCategory->name,
         ];
     }
 }

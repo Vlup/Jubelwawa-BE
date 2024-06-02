@@ -16,7 +16,7 @@ class ChatResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'property' => PropertyDetailResource($this->property),
+            'property' => new PropertyDetailResource($this->property),
             'last_message' => $this->lastMessage,
         ];
     }
