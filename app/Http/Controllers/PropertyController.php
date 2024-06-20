@@ -359,7 +359,7 @@ class PropertyController extends Controller
         ]);
     }
         
-    public function myListing(Request $request)
+    public function myProperty(Request $request)
     {
         $input = validator($request->all(), [
             'province' => 'nullable|exists:provinces,id',
@@ -425,5 +425,12 @@ class PropertyController extends Controller
                 'total_sold_properties' => $totalSoldProperties,
                 'total_rented_properties' => $totalRentedProperties
             ]);
+    }
+
+    public function myFavorite(Request $request)
+    {
+        $user = auth()->user();
+        $properties = $user->likedProperties()->get();
+        return PropertyResource::collection($properties);
     }
 }

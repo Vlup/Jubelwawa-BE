@@ -41,7 +41,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/profile/change-password', [ProfileController::class, 'changePassword']);
 
     Route::prefix('properties')->group(function () {
-        Route::get('/my-listing', [PropertyController::class, 'myListing']);
+        Route::get('/my-property', [PropertyController::class, 'myProperty']);
+        Route::get('/my-favorite', [PropertyController::class, 'myFavorite']);
         Route::get('{id}', [PropertyController::class, 'show']);
         Route::post('/', [PropertyController::class, 'store']);
         Route::put('{id}', [PropertyController::class, 'update']);
