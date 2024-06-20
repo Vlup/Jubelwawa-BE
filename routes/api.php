@@ -9,6 +9,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\SubDistrictController;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpKernel\Profiler\Profile;
 
@@ -58,5 +59,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('notifications')->group(function () {
         Route::get('/', [NotificationController::class, 'index']);
+        Route::put('read-all', [NotificationController::class, 'readAllNotif']);
+        Route::put('{id}/read', [NotificationController::class, 'readNotif']);
     });
 });

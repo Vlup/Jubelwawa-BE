@@ -71,4 +71,29 @@ class NotificationController extends Controller
 
         return NotificationResource::collection($notifications);
     }
+
+    public function readAllNotif()
+    {
+        $user = auth()->user();
+        $user->unreadNotifications->markAsRead();
+
+        return response()->json([
+            "status" => true,
+            'message' => 'Mark as read successfully!',
+        ]);
+    }
+
+    public function readNotif($id)
+    {
+        $notif = Notification::where('id', $id)
+            ->where('notifiable_id', auth()->user()->id)
+            ->firstOrFail();
+
+        $notif->update(['read_at' => now()]);
+
+        return response()->json([
+            "status" => true,
+            'message' => 'Mark as read successfully!',
+        ]);
+    }
 }

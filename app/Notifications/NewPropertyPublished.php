@@ -37,7 +37,9 @@ class NewPropertyPublished extends Notification
     {
         return (new MailMessage)
                     ->line('New Property Published!')
-                    ->action('See Property', url('/'))
+                    ->line("Property Name: {$this->property->title}")
+                    ->line("Description: {$this->property->description}")
+                    ->line("Location: {$this->property->province->name} - {$this->property->city->name} - {$this->property->subDistrict->name}")
                     ->line('Thank you for using our application!');
     }
 
