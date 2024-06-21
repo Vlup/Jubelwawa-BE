@@ -21,6 +21,7 @@ class NotificationResource extends JsonResource
             'province' => $this->data['province'],
             'city' => $this->data['city'],
             'sub_district' => $this->data['sub_district'],
+            'image' => $this->data['image'],
             'is_read' => (bool) $this->read_at
         ];
     }

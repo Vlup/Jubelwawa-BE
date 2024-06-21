@@ -60,6 +60,7 @@ class NewPropertyPublished extends Notification
             'price' => $this->property->price,
             'type' => $this->property->category->name,
             'subtype' => $this->property->subCategory->name,
+            'image' => $this->property->image,
         ];
     }
 }

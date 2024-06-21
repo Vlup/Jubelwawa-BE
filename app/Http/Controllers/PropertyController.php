@@ -106,52 +106,69 @@ class PropertyController extends Controller
 
     public function store(Request $request)
     {
-        $input = validator($request->all(), [
-            'province' => 'required|exists:provinces,id',
-            'city' => 'required|exists:cities,id',
-            'sub_district' => 'required|exists:sub_districts,id',
-            'name' => 'required|string',
-            'price' => 'required|numeric|min:1',
-            'image' => 'required|string',
-            'description' => 'required|string',
-            'bedroom' => 'required|numeric|min:1',
-            'bathroom' => 'required|numeric|min:1',
-            'land_size' => 'required|numeric|min:1',
-            'building_size' => 'required|numeric|min:1',
-            'type' => 'required|exists:categories,id',
-            'subtype' => 'required|exists:sub_categories,id',
-            'status' => 'required|in:Sell,Lease,Buy,Rent' 
-        ])->validate();
-
-        $property = new Property();
-        $property->user_id = auth()->user()->id;
-        $property->province_id = $input['province'];
-        $property->city_id = $input['city'];
-        $property->sub_district_id = $input['sub_district'];
-        $property->title = $input['name'];
-        $property->description = $input['description'];
-        $property->image = $input['image'];
-        $property->price = $input['price'];
-        $property->bedroom = $input['bedroom'];
-        $property->bathroom = $input['bathroom'];
-        $property->land_size = $input['land_size'];
-        $property->building_size = $input['building_size'];
-        $property->category_id = $input['type'];
-        $property->sub_category_id = $input['subtype'];
-        $property->offer_type = $input['status'];
-        $property->save();
-
-        $allUser = User::whereNot('id', auth()->user()->id)
-            ->get();
-        
-        foreach ($allUser as $user) {
-            $user->notify(new NewPropertyPublished($property));
+        try {
+            $input = validator($request->all(), [
+                'province' => 'required|exists:provinces,id',
+                'city' => 'required|exists:cities,id',
+                'sub_district' => 'required|exists:sub_districts,id',
+                'name' => 'required|string',
+                'price' => 'required|numeric|min:1',
+                'image' => 'required',
+                'description' => 'required|string',
+                'bedroom' => 'required|numeric|min:1',
+                'bathroom' => 'required|numeric|min:1',
+                'land_size' => 'required|numeric|min:1',
+                'building_size' => 'required|numeric|min:1',
+                'type' => 'required|exists:categories,id',
+                'subtype' => 'required|exists:sub_categories,id',
+                'status' => 'required|in:Sell,Lease,Buy,Rent' 
+            ])->validate();
+    
+            
+            if ($request->hasFile('image')) {
+                $file = $request->file('image');
+                $imageName = $file->getClientOriginalName(); 
+                $file->storeAs('images', $imageName, 'public'); 
+            } else {
+                $imageData = $input['image'];
+                $image = str_replace('data:image/png;base64,', '', $imageData);
+                $image = str_replace(' ', '+', $image);
+                $imageName = Str::random(10) . '.png';
+                \Storage::disk('public')->put('images/' . $imageName, base64_decode($image));
+            }
+    
+            $property = new Property();
+            $property->user_id = auth()->user()->id;
+            $property->province_id = $input['province'];
+            $property->city_id = $input['city'];
+            $property->sub_district_id = $input['sub_district'];
+            $property->title = $input['name'];
+            $property->description = $input['description'];
+            $property->image = $imageName; 
+            $property->price = $input['price'];
+            $property->bedroom = $input['bedroom'];
+            $property->bathroom = $input['bathroom'];
+            $property->land_size = $input['land_size'];
+            $property->building_size = $input['building_size'];
+            $property->category_id = $input['type'];
+            $property->sub_category_id = $input['subtype'];
+            $property->offer_type = $input['status'];
+            $property->save();
+    
+            auth()->user()->notify(new NewPropertyPublished($property));
+    
+            return response()->json([
+                "status" => true,
+                'message' => 'Property created successfully!',
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error creating property: ' . $e->getMessage());
+    
+            return response()->json([
+                "status" => false,
+                'message' => 'Error creating property: ' . $e->getMessage(),
+            ], 500);
         }
-
-        return response()->json([
-            "status" => true,
-            'message' => 'Property created successfully!',
-        ]);
     }
 
     public function update(Request $request, $id)
