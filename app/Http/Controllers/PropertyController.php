@@ -99,7 +99,7 @@ class PropertyController extends Controller
             $chat->save();
         }
 
-        $property->chat_id = $chat->id;
+        /*$property->chat_id = $chat->id; */
 
         return new PropertyDetailResource($property);
     }
